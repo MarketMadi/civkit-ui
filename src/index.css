@@ -1,0 +1,44 @@
+/* Resetting default margins and paddings */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Setting a global font and background */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: white; /* Universal white background */
+  color: black; /* Default text color */
+}
+
+/* Style for code elements */
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Removing default styles for all header elements */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: normal;
+  color: inherit; /* Inherits the color from the parent element */
+}
+
+/* Universal link styling */
+a {
+  color: inherit; /* Inherits the color from the parent element */
+  text-decoration: none; /* Removes underline from links */
+}
+
+/* Universal button styling */
+button {
+  font: inherit; /* Inherits font from the parent element */
+  color: inherit; /* Inherits the color from the parent element */
+  background-color: transparent; /* Removes default background */
+  border: none; /* Removes default border */
+  cursor: pointer; /* Changes cursor to pointer on hover */
+}
+
+/* Add other universal styles as needed */
