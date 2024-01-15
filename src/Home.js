@@ -9,8 +9,10 @@ const Home = () => {
       <header className="App-header">
         <h1>Welcome to Civkit</h1>
         <div className="link-container">
-          <Link to="/orderbook" className="App-link left-link">View the Orderbook</Link>
-          <Link to="/createorder" className="App-link right-link">Create an Order</Link>
+          <Link to="/" className="App-link">Home</Link> |
+          <Link to="/orderbook" className="App-link">OrderBook</Link> |
+          <Link to="/createorder" className="App-link">Create Order</Link> |
+          <Link to="/stakingcredentials" className="App-link">Staking Credentials</Link>
         </div>
         <Logo />
       </header>
