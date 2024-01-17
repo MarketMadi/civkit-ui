@@ -1,85 +1,112 @@
 import React from 'react';
-import './OrderBook.css'; // Import the CSS file
+import { Box, Paper, Grid, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, AppBar, Toolbar } from '@mui/material';
 
 const OrderBook = ({ orders }) => {
-  return (
-    <div className="OrderBook">
-      <h2>Order Book</h2>
-      {/* Buy Orders Table */}
-      <div className="BuyOrders">
-        <h3>Buy Orders</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Amount</th>
-              <th>Currency</th>
-              <th>Payment Method</th>
-              <th>Expiry Date</th>
-              <th>Timer</th>
-              <th>Price</th>
-              <th>Bond</th>
-              <th>Premium</th>
-              <th>Reputation Score</th> {/* New Column */}
-            </tr>
-          </thead>
-          <tbody>
-            {orders.filter(order => order.orderType === 'Buy').map((order, index) => (
-              <tr key={index}>
-                <td>{order.username}</td>
-                <td>{order.amount}</td>
-                <td>{order.currency}</td>
-                <td>{order.paymentMethod}</td>
-                <td>{order.expiryDate}</td>
-                <td>{order.timer}</td>
-                <td>{order.price}</td>
-                <td>{order.bond}</td>
-                <td>{order.premium}</td>
-                <td>{order.reputationScore}</td> {/* New Data Field */}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  const takeOrder = (orderId) => {
+    console.log("Taking order with ID:", orderId);
+    // Implement the logic for taking an order
+  };
 
-      {/* Sell Orders Table */}
-      <div className="SellOrders">
-        <h3>Sell Orders</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Amount</th>
-              <th>Currency</th>
-              <th>Payment Method</th>
-              <th>Expiry Date</th>
-              <th>Timer</th>
-              <th>Price</th>
-              <th>Bond</th>
-              <th>Premium</th>
-              <th>Reputation Score</th> {/* New Column */}
-            </tr>
-          </thead>
-          <tbody>
-            {orders.filter(order => order.orderType === 'Sell').map((order, index) => (
-              <tr key={index}>
-                <td>{order.username}</td>
-                <td>{order.amount}</td>
-                <td>{order.currency}</td>
-                <td>{order.paymentMethod}</td>
-                <td>{order.expiryDate}</td>
-                <td>{order.timer}</td>
-                <td>{order.price}</td>
-                <td>{order.bond}</td>
-                <td>{order.premium}</td>
-                <td>{order.reputationScore}</td> {/* New Data Field */}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+  const renderTableRows = (orderType) => {
+    return orders
+      .filter(order => order.orderType === orderType)
+      .map((order, index) => (
+        <TableRow key={index}>
+          <TableCell>{order.username}</TableCell>
+          <TableCell>{order.amount}</TableCell>
+          <TableCell>{order.currency}</TableCell>
+          <TableCell>{order.paymentMethod}</TableCell>
+          <TableCell>{order.expiryDate}</TableCell>
+          <TableCell>{order.timer}</TableCell>
+          <TableCell>{order.price}</TableCell>
+          <TableCell>{order.bond}</TableCell>
+          <TableCell>{order.premium}</TableCell>
+          <TableCell>{order.reputationScore}</TableCell>
+          <TableCell align="right">
+            <Button variant="contained" color="primary" onClick={() => takeOrder(order.id)}>
+              Take Order
+            </Button>
+          </TableCell>
+        </TableRow>
+      ));
+  };
+
+  return (
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            OrderBook
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      <Box sx={{ p: 2 }}>
+        <Grid container spacing={2}>
+          {/* Buy Orders Table */}
+          <Grid item xs={12}>
+            <Typography variant="h4" align="center" gutterBottom>
+              Buy Orders
+            </Typography>
+            <TableContainer component={Paper} elevation={12}>
+              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Username</TableCell>
+                    <TableCell>Amount</TableCell>
+                    <TableCell>Currency</TableCell>
+                    <TableCell>Payment Method</TableCell>
+                    <TableCell>Expiry Date</TableCell>
+                    <TableCell>Timer</TableCell>
+                    <TableCell>Price</TableCell>
+                    <TableCell>Bond</TableCell>
+                    <TableCell>Premium</TableCell>
+                    <TableCell>Reputation Score</TableCell>
+                    <TableCell align="right">Action</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {renderTableRows('Buy')}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+
+          {/* Sell Orders Table */}
+          <Grid item xs={12}>
+php
+Copy code
+        <Typography variant="h4" align="center" gutterBottom>
+          Sell Orders
+        </Typography>
+        <TableContainer component={Paper} elevation={12}>
+          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Username</TableCell>
+                <TableCell>Amount</TableCell>
+                <TableCell>Currency</TableCell>
+                <TableCell>Payment Method</TableCell>
+                <TableCell>Expiry Date</TableCell>
+                <TableCell>Timer</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Bond</TableCell>
+                <TableCell>Premium</TableCell>
+                <TableCell>Reputation Score</TableCell>
+                <TableCell align="right">Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {renderTableRows('Sell')}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Grid>
+    </Grid>
+  </Box>
+</Box>
+);
 };
 
 export default OrderBook;
+

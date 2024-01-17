@@ -8,10 +8,7 @@ function App() {
   const [orders, setOrders] = useState([]);
 
   const handleCreateOrder = (newOrder) => {
-    console.log('New Order:', newOrder); // Log new order
-    const updatedOrders = [...orders, newOrder];
-    console.log('Updated Orders:', updatedOrders); // Log updated orders list
-    setOrders(updatedOrders);
+    setOrders([...orders, { ...newOrder, id: orders.length + 1 }]);
   };
 
   return (
