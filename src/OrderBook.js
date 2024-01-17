@@ -1,10 +1,14 @@
 import React from 'react';
 import { Box, Paper, Grid, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, AppBar, Toolbar } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import CreateOrderForm from './CreateOrderForm';
 
-const OrderBook = ({ orders }) => {
-  const takeOrder = (orderId) => {
-    console.log("Taking order with ID:", orderId);
-    // Implement the logic for taking an order
+const OrderBook = ({ orders, onSelectOrder }) => {
+  const navigate = useNavigate();
+  const takeOrder = (order) => {
+    onSelectOrder(order);
+    // Pass necessary order details to the LockBondPage
+    navigate('/lockbond', { state: { orderDetails: order } });
   };
 
   const renderTableRows = (orderType) => {
@@ -74,8 +78,6 @@ const OrderBook = ({ orders }) => {
 
           {/* Sell Orders Table */}
           <Grid item xs={12}>
-php
-Copy code
         <Typography variant="h4" align="center" gutterBottom>
           Sell Orders
         </Typography>
