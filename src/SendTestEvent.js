@@ -5,6 +5,7 @@ import { schnorr, utils } from 'noble-secp256k1';
 function SendOrderEvent() {
   const [isConnected, setIsConnected] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [receivedEvents, setReceivedEvents] = useState([]);
   const [order, setOrder] = useState({
     amount: '',
     currency: '',
@@ -27,6 +28,8 @@ function SendOrderEvent() {
 
     wsRef.current.onmessage = (event) => {
       console.log('Received message:', event.data);
+      const eventData = JSON.parse(event.data);
+      setReceivedEvents(prevEvents => [...prevEvents, eventData]);
     };
 
     wsRef.current.onerror = (error) => {
@@ -64,8 +67,11 @@ function SendOrderEvent() {
       throw new Error('Not connected to WebSocket');
     }
 
+    const publicKey = process.env.REACT_APP_NPUB_KEY;
+    const privateKey = process.env.REACT_APP_PRIVATE_KEY;
+
     const eventContent = {
-      pubkey: '',
+      pubkey: publicKey,
       created_at: Math.floor(Date.now() / 1000),
       kind: 1,
       tags: [],
@@ -81,7 +87,6 @@ function SendOrderEvent() {
       eventContent.content,
     ]);
 
-    const privateKey = '';
     const signature = await signEventData(serializedEvent, privateKey);
     const eventId = await utils.sha256(new TextEncoder().encode(serializedEvent));
 
@@ -116,6 +121,15 @@ function SendOrderEvent() {
       </Button>
       {errorMessage && <p className="error">{errorMessage}</p>}
       {isConnected ? '' : 'Connecting to WebSocket...'}
+      
+      <div>
+        <h2>Received Events</h2>
+        {receivedEvents.map((event, index) => (
+          <div key={index}>
+            <pre>{JSON.stringify(event, null, 2)}</pre>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
