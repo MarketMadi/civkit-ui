@@ -8,6 +8,7 @@ import InvoiceSubmissionPage from './InvoiceSubmissionPage'; // Import the compo
 import ChatPage from './ChatPage'; // Import the ChatPage component
 import ConfirmOrderPage from './ConfirmOrderPage';
 import OrderCompletePage from './OrderCompletePage';
+import SendTestEvent from './SendTestEvent'; // Without extension
 
 function App() {
   const [orders, setOrders] = useState([]);
@@ -33,6 +34,8 @@ function App() {
       <div>
         <nav>
           <Link to="/">Home</Link> | <Link to="/orderbook">OrderBook</Link> | <Link to="/createorder">Create Order</Link>
+          <Link to="/createorder">Create Order</Link> | 
+          <Link to="/sendtestevent">Send Test Event</Link>
         </nav>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -43,6 +46,7 @@ function App() {
           <Route path="/chat" element={<ChatPage onConfirmOrder={handleConfirmOrder} />} />
           <Route path="/confirmorder" element={<ConfirmOrderPage />} />
           <Route path="/ordercomplete" element={<OrderCompletePage orderDetails={selectedOrder} />} />
+          <Route path="/sendtestevent" element={<SendTestEvent />} />
 
         </Routes>
       </div>
