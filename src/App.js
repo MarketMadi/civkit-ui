@@ -4,11 +4,12 @@ import OrderBook from './OrderBook';
 import Home from './Home';
 import CreateOrderForm from './CreateOrderForm';
 import LockBondPage from './LockBondPage';
-import InvoiceSubmissionPage from './InvoiceSubmissionPage'; // Import the component
-import ChatPage from './ChatPage'; // Import the ChatPage component
+import InvoiceSubmissionPage from './InvoiceSubmissionPage';
+import ChatPage from './ChatPage';
 import ConfirmOrderPage from './ConfirmOrderPage';
 import OrderCompletePage from './OrderCompletePage';
-import SendTestEvent from './SendTestEvent'; // Without extension
+import SendTestEvent from './SendTestEvent';
+import NostrDump from './NostrDump'; // Import the NostrDump component
 
 function App() {
   const [orders, setOrders] = useState([]);
@@ -33,9 +34,11 @@ function App() {
     <Router>
       <div>
         <nav>
-          <Link to="/">Home</Link> | <Link to="/orderbook">OrderBook</Link> | <Link to="/createorder">Create Order</Link>
-          <Link to="/createorder">Create Order</Link> | 
-          <Link to="/sendtestevent">Send Test Event</Link>
+          <Link to="/">Home</Link> | 
+          <Link to="/orderbook">OrderBook</Link> | 
+          <Link to="/createorder">Create Order</Link> |
+          <Link to="/sendtestevent">Send Test Event</Link> | 
+          <Link to="/nostr-dump">Nostr Dump</Link> {/* Link to NostrDump */}
         </nav>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -47,7 +50,7 @@ function App() {
           <Route path="/confirmorder" element={<ConfirmOrderPage />} />
           <Route path="/ordercomplete" element={<OrderCompletePage orderDetails={selectedOrder} />} />
           <Route path="/sendtestevent" element={<SendTestEvent />} />
-
+          <Route path="/nostr-dump" element={<NostrDump />} /> {/* Route for NostrDump */}
         </Routes>
       </div>
     </Router>
