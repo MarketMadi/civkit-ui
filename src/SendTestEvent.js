@@ -65,7 +65,7 @@ function SendOrderEvent() {
     }
 
     const eventContent = {
-      pubkey: 'ad466b6fa66a8509912f6ec2b998f0453c492c49438917a62b35d383d3c58cfc',
+      pubkey: '',
       created_at: Math.floor(Date.now() / 1000),
       kind: 1,
       tags: [],
@@ -81,7 +81,7 @@ function SendOrderEvent() {
       eventContent.content,
     ]);
 
-    const privateKey = '10cd8c5c8a1fbb03120be5afe28cc3d2d37d52bedd8320d94315acafded3c354';
+    const privateKey = '';
     const signature = await signEventData(serializedEvent, privateKey);
     const eventId = await utils.sha256(new TextEncoder().encode(serializedEvent));
 
