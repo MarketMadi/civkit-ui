@@ -1,9 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { schnorr, utils } from 'noble-secp256k1';
 
-function SendTestEvent() {
+function SendOrderEvent() {
   const [isConnected, setIsConnected] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [order, setOrder] = useState({
+    amount: '',
+    currency: '',
+    paymentMethod: '',
+    timer: '',
+    price: '',
+    bond: '',
+    premium: '',
+    orderType: 'Buy',
+  });
   const wsRef = useRef(null);
 
   useEffect(() => {
@@ -37,70 +48,76 @@ function SendTestEvent() {
   };
 
   const signEventData = async (eventData, privateKey) => {
-    try {
-      const encoder = new TextEncoder();
-      const encodedData = encoder.encode(eventData);
-      const messageHash = await utils.sha256(encodedData);
-      const signature = await schnorr.sign(messageHash, privateKey);
-      return byteArrayToHex(signature);
-    } catch (error) {
-      console.error('Error in signEventData:', error);
-      throw error;
-    }
+    const encoder = new TextEncoder();
+    const encodedData = encoder.encode(eventData);
+    const messageHash = await utils.sha256(encodedData);
+    const signature = await schnorr.sign(messageHash, privateKey);
+    return byteArrayToHex(signature);
+  };
+
+  const handleChange = (e) => {
+    setOrder({ ...order, [e.target.name]: e.target.value });
   };
 
   const handleSendEvent = async () => {
-    try {
-      if (!isConnected) {
-        throw new Error('Not connected to WebSocket');
-      }
-
-      const eventContent = {
-        pubkey: 'ad466b6fa66a8509912f6ec2b998f0453c492c49438917a62b35d383d3c58cfc',
-        created_at: Math.floor(Date.now() / 1000),
-        kind: 1,
-        tags: [],
-        content: 'Simple test message',
-      };
-
-      const serializedEvent = JSON.stringify([
-        0,
-        eventContent.pubkey,
-        eventContent.created_at,
-        eventContent.kind,
-        eventContent.tags,
-        eventContent.content,
-      ]);
-
-      const privateKey = '10cd8c5c8a1fbb03120be5afe28cc3d2d37d52bedd8320d94315acafded3c354';
-      const signature = await signEventData(serializedEvent, privateKey);
-      const eventId = await utils.sha256(new TextEncoder().encode(serializedEvent));
-
-      const testEvent = {
-        ...eventContent,
-        id: byteArrayToHex(eventId),
-        sig: signature,
-      };
-
-      const message = JSON.stringify(['EVENT', testEvent]);
-      console.log('Sending message:', message);
-      wsRef.current.send(message);
-    } catch (error) {
-      console.error('Error sending event:', error);
-      setErrorMessage('Failed to send event:' + error.message);
+    if (!isConnected) {
+      throw new Error('Not connected to WebSocket');
     }
+
+    const eventContent = {
+      pubkey: 'ad466b6fa66a8509912f6ec2b998f0453c492c49438917a62b35d383d3c58cfc',
+      created_at: Math.floor(Date.now() / 1000),
+      kind: 1,
+      tags: [],
+      content: JSON.stringify(order),
+    };
+
+    const serializedEvent = JSON.stringify([
+      0,
+      eventContent.pubkey,
+      eventContent.created_at,
+      eventContent.kind,
+      eventContent.tags,
+      eventContent.content,
+    ]);
+
+    const privateKey = '10cd8c5c8a1fbb03120be5afe28cc3d2d37d52bedd8320d94315acafded3c354';
+    const signature = await signEventData(serializedEvent, privateKey);
+    const eventId = await utils.sha256(new TextEncoder().encode(serializedEvent));
+
+    const testEvent = {
+      ...eventContent,
+      id: byteArrayToHex(eventId),
+      sig: signature,
+    };
+
+    const message = JSON.stringify(['EVENT', testEvent]);
+    wsRef.current.send(message);
   };
 
   return (
     <div>
-      {isConnected ? (
-        <button onClick={handleSendEvent}>Send Event</button>
-      ) : (
-        'Connecting to WebSocket...'
-      )}
+      <TextField label="Amount" name="amount" fullWidth value={order.amount} onChange={handleChange} />
+      <TextField label="Currency" name="currency" fullWidth value={order.currency} onChange={handleChange} />
+      <TextField label="Payment Method" name="paymentMethod" fullWidth value={order.paymentMethod} onChange={handleChange} />
+      <TextField label="Timer" name="timer" fullWidth value={order.timer} onChange={handleChange} />
+      <TextField label="Price" name="price" fullWidth value={order.price} onChange={handleChange} />
+      <TextField label="Bond" name="bond" fullWidth value={order.bond} onChange={handleChange} />
+      <TextField label="Premium" name="premium" fullWidth value={order.premium} onChange={handleChange} />
+      <FormControl fullWidth>
+        <InputLabel>Order Type</InputLabel>
+        <Select name="orderType" value={order.orderType} label="Order Type" onChange={handleChange}>
+          <MenuItem value="Buy">Buy</MenuItem>
+          <MenuItem value="Sell">Sell</MenuItem>
+        </Select>
+      </FormControl>
+      <Button onClick={handleSendEvent} disabled={!isConnected} variant="contained" sx={{ mt: 3, mb: 2 }}>
+        Send Order
+      </Button>
       {errorMessage && <p className="error">{errorMessage}</p>}
+      {isConnected ? '' : 'Connecting to WebSocket...'}
     </div>
   );
 }
 
-export default SendTestEvent;
+export default SendOrderEvent;

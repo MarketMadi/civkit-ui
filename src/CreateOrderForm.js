@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Button } from '@mui/material';
+import { Container, Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { v4 as uuidv4 } from 'uuid';
+import { schnorr, utils } from 'noble-secp256k1';
 
-const CreateOrderForm = () => {
+const CreateOrderForm = ({ onCreateOrder }) => {
+  const [newOrder, setNewOrder] = useState({
+    amount: '',
+    currency: '',
+    paymentMethod: '',
+    timer: '',
+    price: '',
+    bond: '',
+    premium: '',
+    orderType: 'Buy',
+  });
+
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const relayUrl = 'ws://localhost:7000'; // Replace with your Nostr relay URL
+    const relayUrl = 'ws://localhost:7000';
     const ws = new WebSocket(relayUrl);
 
     ws.onopen = () => {
@@ -23,137 +36,163 @@ const CreateOrderForm = () => {
     };
   }, []);
 
-  const handleTestSubmit = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      const testMessage = { message: 'Hello Nostr' };
-      socket.send(JSON.stringify(testMessage));
-      console.log('Test JSON message sent');
-    } else {
+  const byteArrayToHex = (byteArray) => {
+    return Array.from(byteArray, byte => {
+      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
+  };
+
+  const signEventData = async (eventData, privateKey) => {
+    try {
+      const encoder = new TextEncoder();
+      const encodedData = encoder.encode(eventData);
+      const messageHash = await utils.sha256(encodedData);
+      const signature = await schnorr.sign(messageHash, privateKey);
+      return byteArrayToHex(signature);
+    } catch (error) {
+      console.error('Error in signEventData:', error);
+      throw error;
+    }
+  };
+
+  const handleChange = (e) => {
+    setNewOrder({ ...newOrder, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
       console.error('WebSocket is not connected');
+      return;
+    }
+  
+    try {
+      const publicKey = ''; // Replace with correct public key
+      const eventContent = {
+        pubkey: publicKey,
+        created_at: Math.floor(Date.now() / 1000),
+        kind: 1, // Set kind to 1 for order creation events
+        tags: [],
+        content: JSON.stringify(newOrder),
+      };
+  
+      const serializedEvent = JSON.stringify([
+        0,
+        eventContent.pubkey,
+        eventContent.created_at,
+        eventContent.kind,
+        eventContent.tags,
+        eventContent.content,
+      ]);
+  
+      const privateKey = ''; // Replace with your private key
+      const signature = await signEventData(serializedEvent, privateKey);
+      const eventId = await utils.sha256(new TextEncoder().encode(serializedEvent));
+  
+      const nostrEvent = {
+        ...eventContent,
+        id: byteArrayToHex(eventId),
+        sig: signature,
+      };
+  
+      socket.send(JSON.stringify(['EVENT', nostrEvent]));
+      console.log('Order event sent');
+  
+      onCreateOrder(newOrder);
+      setNewOrder({
+        amount: '',
+        currency: '',
+        paymentMethod: '',
+        timer: '',
+        price: '',
+        bond: '',
+        premium: '',
+        orderType: 'Buy',
+      });
+  
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
     }
   };
 
   return (
     <Container component="main" maxWidth="sm">
-      <Button variant="contained" onClick={handleTestSubmit} sx={{ mt: 3, mb: 2 }}>
-        Send Test Message
-      </Button>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          required
+          fullWidth
+          label="Amount"
+          name="amount"
+          value={newOrder.amount}
+          onChange={handleChange}
+        />
+        <TextField
+          required
+          fullWidth
+          label="Currency"
+          name="currency"
+          value={newOrder.currency}
+          onChange={handleChange}
+        />
+        <TextField
+          required
+          fullWidth
+          label="Payment Method"
+          name="paymentMethod"
+          value={newOrder.paymentMethod}
+          onChange={handleChange}
+        />
+        <TextField
+          required
+          fullWidth
+          label="Timer"
+          name="timer"
+          value={newOrder.timer}
+          onChange={handleChange}
+        />
+        <TextField
+          required
+          fullWidth
+          label="Price"
+          name="price"
+          value={newOrder.price}
+          onChange={handleChange}
+        />
+        <TextField
+          required
+          fullWidth
+          label="Bond"
+          name="bond"
+          value={newOrder.bond}
+          onChange={handleChange}
+        />
+        <TextField
+          required
+          fullWidth
+          label="Premium"
+          name="premium"
+          value={newOrder.premium}
+          onChange={handleChange}
+        />
+        <FormControl fullWidth>
+          <InputLabel>Order Type</InputLabel>
+          <Select
+            name="orderType"
+            value={newOrder.orderType}
+            label="Order Type"
+            onChange={handleChange}
+          >
+            <MenuItem value="Buy">Buy</MenuItem>
+            <MenuItem value="Sell">Sell</MenuItem>
+          </Select>
+        </FormControl>
+        <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+          Create Order
+        </Button>
+      </form>
     </Container>
   );
 };
 
 export default CreateOrderForm;
-
-
-// import React, { useState, useEffect } from 'react';
-// import { Container, Paper, Table, TableBody, TableCell, TableRow, TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-// import { v4 as uuidv4 } from 'uuid'; // For generating a unique event ID
-
-// const CreateOrderForm = ({ onCreateOrder }) => {
-//   const [newOrder, setNewOrder] = useState({
-//     amount: '',
-//     currency: '',
-//     paymentMethod: '',
-//     timer: '',
-//     price: '',
-//     bond: '',
-//     premium: '',
-//     orderType: 'Buy',
-//   });
-
-//   const [socket, setSocket] = useState(null);
-
-//   useEffect(() => {
-//     const relayUrl = 'ws://localhost:7000'; // Replace with your Nostr relay URL
-//     const ws = new WebSocket(relayUrl);
-
-//     ws.onopen = () => {
-//       console.log('Connected to Nostr relay');
-//     };
-
-//     ws.onerror = (error) => {
-//       console.error('WebSocket error:', error);
-//     };
-
-//     setSocket(ws);
-
-//     return () => {
-//       ws.close();
-//     };
-//   }, []);
-
-
-
-//   const handleChange = (e) => {
-//     setNewOrder({ ...newOrder, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-
-//     if (socket && socket.readyState === WebSocket.OPEN) {
-//       const timestamp = Math.floor(Date.now() / 1000);
-//       const nostrEvent = {
-//         id: uuidv4(), // Unique event ID
-//         pubkey: 'your_public_key', // Replace with the actual public key
-//         created_at: timestamp,
-//         kind: 1, // Event kind (1 for text note, adjust as needed)
-//         tags: [], // Add any relevant tags
-//         content: JSON.stringify(newOrder),
-//       };
-
-//       socket.send(JSON.stringify(['EVENT', nostrEvent]));
-//       console.log('Order event sent');
-//     } else {
-//       console.error('WebSocket is not connected');
-//     }
-
-//     onCreateOrder(newOrder);
-//     setNewOrder({
-//       amount: '',
-//       currency: '',
-//       paymentMethod: '',
-//       timer: '',
-//       price: '',
-//       bond: '',
-//       premium: '',
-//       orderType: 'Buy',
-//     });
-//   };
-
-
-//   return (
-//     <Container component="main" maxWidth="sm">
-//       <Paper sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 2 }}>
-//         <Table component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-//           <TableBody>
-//             {/* Amount */}
-//             <TableRow>
-//               <TableCell>
-//                 <TextField
-//                   required
-//                   fullWidth
-//                   label="Amount"
-//                   name="amount"
-//                   value={newOrder.amount}
-//                   onChange={handleChange}
-//                 />
-//               </TableCell>
-//             </TableRow>
-//             {/* ... other form fields ... */}
-//             {/* Submit Button */}
-//             <TableRow>
-//               <TableCell>
-//                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-//                   Create Order
-//                 </Button>
-//               </TableCell>
-//             </TableRow>
-//           </TableBody>
-//         </Table>
-//       </Paper>
-//     </Container>
-//   );
-// };
-
-// export default CreateOrderForm;
