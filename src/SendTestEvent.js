@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { schnorr, utils } from 'noble-secp256k1';
+import { useNavigate } from 'react-router-dom';
 
 function SendOrderEvent() {
+  const navigate = useNavigate();
   const [isConnected, setIsConnected] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [receivedEvents, setReceivedEvents] = useState([]);
@@ -98,6 +100,9 @@ function SendOrderEvent() {
 
     const message = JSON.stringify(['EVENT', testEvent]);
     wsRef.current.send(message);
+
+    // Redirect to the submit invoice page after sending the order
+    navigate('/submitinvoice');
   };
 
   return (
