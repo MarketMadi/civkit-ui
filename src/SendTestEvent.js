@@ -102,7 +102,7 @@ function SendOrderEvent() {
     wsRef.current.send(message);
 
     // Redirect to the submit invoice page after sending the order
-    navigate('/submitinvoice');
+    navigate('/lockbond');
   };
 
   return (
