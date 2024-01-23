@@ -1,16 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Paper, Grid, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, AppBar, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import CreateOrderForm from './CreateOrderForm';
 
-const OrderBook = ({ orders, onSelectOrder }) => {
+const OrderBook = () => {
   const navigate = useNavigate();
+  const [orders, setOrders] = useState([
+    // Sample order
+    {
+      id: 'sample1',
+      username: 'SampleUser',
+      amount: '100',
+      currency: 'USD',
+      paymentMethod: 'Bank Transfer',
+      expiryDate: '2024-02-01',
+      timer: '48h',
+      price: '5000',
+      bond: '200',
+      premium: '5%',
+      reputationScore: '95',
+      orderType: 'Buy'
+    }
+  ]);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:7000');
+
+    ws.onopen = () => {
+      console.log('Connected to Nostr relay');
+    };
+
+    ws.onmessage = (event) => {
+      const eventData = JSON.parse(event.data);
+      // Assuming eventData is an array of events
+      const newOrders = eventData.filter(e => e.kind === 1); // Filter for order submission events
+      setOrders(prevOrders => [...prevOrders, ...newOrders]);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setErrorMessage('Connection error:' + error.message);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
   const takeOrder = (order) => {
-    onSelectOrder(order);
-    // Pass necessary order details to the LockBondPage
+    // Logic to handle taking an order
     navigate('/lockbond', { state: { orderDetails: order } });
   };
-
   const renderTableRows = (orderType) => {
     return orders
       .filter(order => order.orderType === orderType)
