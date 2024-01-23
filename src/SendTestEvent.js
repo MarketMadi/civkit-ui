@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { schnorr, utils } from 'noble-secp256k1';
 import { useNavigate } from 'react-router-dom';
+import { LoginContext } from './LoginContext';
 
 function SendOrderEvent() {
   const navigate = useNavigate();
+  const { credentials } = useContext(LoginContext);
   const [isConnected, setIsConnected] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [receivedEvents, setReceivedEvents] = useState([]);
@@ -46,20 +48,6 @@ function SendOrderEvent() {
     };
   }, []);
 
-  const byteArrayToHex = (byteArray) => {
-    return Array.from(byteArray, byte => {
-      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('');
-  };
-
-  const signEventData = async (eventData, privateKey) => {
-    const encoder = new TextEncoder();
-    const encodedData = encoder.encode(eventData);
-    const messageHash = await utils.sha256(encodedData);
-    const signature = await schnorr.sign(messageHash, privateKey);
-    return byteArrayToHex(signature);
-  };
-
   const handleChange = (e) => {
     setOrder({ ...order, [e.target.name]: e.target.value });
   };
@@ -69,11 +57,8 @@ function SendOrderEvent() {
       throw new Error('Not connected to WebSocket');
     }
 
-    const publicKey = process.env.REACT_APP_NPUB_KEY;
-    const privateKey = process.env.REACT_APP_PRIVATE_KEY;
-
     const eventContent = {
-      pubkey: publicKey,
+      pubkey: credentials.npub,
       created_at: Math.floor(Date.now() / 1000),
       kind: 1,
       tags: [],
@@ -89,22 +74,31 @@ function SendOrderEvent() {
       eventContent.content,
     ]);
 
-    const signature = await signEventData(serializedEvent, privateKey);
-    const eventId = await utils.sha256(new TextEncoder().encode(serializedEvent));
-
+    const signature = await signEventData(serializedEvent, credentials.nsec);
     const testEvent = {
       ...eventContent,
-      id: byteArrayToHex(eventId),
+      id: byteArrayToHex(await utils.sha256(new TextEncoder().encode(serializedEvent))),
       sig: signature,
     };
 
     const message = JSON.stringify(['EVENT', testEvent]);
     wsRef.current.send(message);
 
-    // Redirect to the submit invoice page after sending the order
     navigate('/lockbond');
   };
 
+  const byteArrayToHex = (byteArray) => {
+    return Array.from(byteArray, byte => {
+      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
+  };
+  
+  const signEventData = async (eventData, privateKey) => {
+    const messageHash = await utils.sha256(new TextEncoder().encode(eventData));
+    const signature = await schnorr.sign(messageHash, privateKey);
+    return byteArrayToHex(signature);
+  };
+  
   return (
     <div>
       <TextField label="Amount" name="amount" fullWidth value={order.amount} onChange={handleChange} />

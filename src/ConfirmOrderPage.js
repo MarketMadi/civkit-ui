@@ -1,14 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Paper, Typography, Button } from '@mui/material';
 import { schnorr, utils } from 'noble-secp256k1';
+import { LoginContext } from './LoginContext'; // Import the LoginContext
 
 const ConfirmOrderPage = () => {
   const navigate = useNavigate();
+  const { credentials } = useContext(LoginContext); // Use credentials from LoginContext
   const wsRef = useRef(null);
-
-  const npub = process.env.REACT_APP_NPUB_KEY;
-  const nsec = process.env.REACT_APP_PRIVATE_KEY;
 
   useEffect(() => {
     wsRef.current = new WebSocket('ws://localhost:7000');
@@ -26,7 +25,7 @@ const ConfirmOrderPage = () => {
   const createNostrEvent = async (content, kind = 1) => {
     try {
       const eventContent = {
-        pubkey: npub,
+        pubkey: credentials.npub, // Use logged-in user's public key
         created_at: Math.floor(Date.now() / 1000),
         kind: kind,
         tags: [],
@@ -43,7 +42,7 @@ const ConfirmOrderPage = () => {
       ]);
 
       const messageHash = await utils.sha256(new TextEncoder().encode(serializedEvent));
-      const signature = await schnorr.sign(messageHash, nsec);
+      const signature = await schnorr.sign(messageHash, credentials.nsec); // Use logged-in user's private key
 
       return {
         ...eventContent,

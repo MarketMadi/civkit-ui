@@ -10,10 +10,14 @@ import ConfirmOrderPage from './ConfirmOrderPage';
 import OrderCompletePage from './OrderCompletePage';
 import SendTestEvent from './SendTestEvent';
 import NostrDump from './NostrDump'; // Import the NostrDump component
+import Login from './Login';
+import { LoginContext } from './LoginContext';
 
 function App() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null); // New state for selected order
+  const [userRole, setUserRole] = useState(null); // 'user' or 'orderbookRunner'
+  const [credentials, setCredentials] = useState(null);
 
   const handleCreateOrder = (newOrder) => {
     setOrders([...orders, { ...newOrder, id: orders.length + 1 }]);
@@ -31,6 +35,7 @@ function App() {
   };
 
   return (
+    <LoginContext.Provider value={{ credentials, setCredentials }}>
     <Router>
       <div>
         <nav>
@@ -38,7 +43,12 @@ function App() {
           <Link to="/orderbook">OrderBook</Link> | 
           <Link to="/createorder">Create Order</Link> |
           <Link to="/sendtestevent">Send Test Event</Link> | 
-          <Link to="/nostr-dump">Nostr Dump</Link> {/* Link to NostrDump */}
+          <Link to="/nostr-dump">Nostr Dump</Link> {/* Link to NostrDump */} | 
+          <Link to="/orderbook-runner-login">Orderbook Runner Login</Link> | 
+          <Link to="/login">User Login</Link>
+          {userRole === 'orderbookRunner' && <Link to="/nostr-dump">Nostr Dump</Link>}
+
+
         </nav>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -51,9 +61,12 @@ function App() {
           <Route path="/ordercomplete" element={<OrderCompletePage orderDetails={selectedOrder} />} />
           <Route path="/sendtestevent" element={<SendTestEvent />} />
           <Route path="/nostr-dump" element={<NostrDump />} /> {/* Route for NostrDump */}
+          <Route path="/login" element={<Login setUserRole={setUserRole} />} />
+
         </Routes>
       </div>
     </Router>
+    </LoginContext.Provider>
   );
 }
 

@@ -1,16 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Paper, Typography, Button } from '@mui/material';
 import { schnorr, utils } from 'noble-secp256k1';
+import { LoginContext } from './LoginContext';
 
 const LockBondPage = ({ orderDetails }) => {
   const navigate = useNavigate();
+  const { credentials } = useContext(LoginContext);
   const wsRef = useRef(null);
   const [error, setError] = useState('');
-
-  // Replace these with actual public and private keys
-  const publicKey = process.env.REACT_APP_NPUB_KEY;
-  const privateKey = process.env.REACT_APP_PRIVATE_KEY;
 
   useEffect(() => {
     wsRef.current = new WebSocket('ws://localhost:7000');
@@ -31,9 +29,9 @@ const LockBondPage = ({ orderDetails }) => {
   const createNostrEvent = async () => {
     try {
       const eventContent = {
-        pubkey: publicKey,
+        pubkey: credentials.npub,
         created_at: Math.floor(Date.now() / 1000),
-        kind: 1002, // Custom kind for bond locking
+        kind: 1002,
         tags: [],
         content: JSON.stringify({ message: 'Bond is locked', orderDetails }),
       };
@@ -48,7 +46,7 @@ const LockBondPage = ({ orderDetails }) => {
       ]);
 
       const messageHash = await utils.sha256(new TextEncoder().encode(serializedEvent));
-      const signature = await schnorr.sign(messageHash, privateKey);
+      const signature = await schnorr.sign(messageHash, credentials.nsec);
 
       return {
         ...eventContent,
@@ -66,7 +64,7 @@ const LockBondPage = ({ orderDetails }) => {
       const nostrEvent = await createNostrEvent();
       const message = JSON.stringify(['EVENT', nostrEvent]);
       wsRef.current.send(message);
-      navigate('/submitinvoice'); // Redirect to the invoice submission page after locking the bond
+      navigate('/submitinvoice');
     } catch (error) {
       console.error('Error locking bond:', error);
       setError('Error locking bond: ' + error.message);
@@ -77,7 +75,6 @@ const LockBondPage = ({ orderDetails }) => {
     <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Paper sx={{ padding: 2 }}>
         <Typography variant="h5">Lock Bond</Typography>
-        {/* Display QR Code here */}
         <Typography sx={{ mt: 2 }}>Your bond amount is locked in your wallet.</Typography>
         <Button variant="contained" color="primary" onClick={handleLockBond} sx={{ mt: 2 }}>
           Proceed to Invoice Submission
