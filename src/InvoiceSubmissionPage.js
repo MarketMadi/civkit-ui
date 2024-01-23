@@ -1,17 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Container, Paper, TextField, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { schnorr, utils } from 'noble-secp256k1';
+import { LoginContext } from './LoginContext'; // Import the LoginContext
 
 const InvoiceSubmissionPage = ({ onInvoiceSubmit, orderDetails }) => {
   const navigate = useNavigate();
+  const { credentials } = useContext(LoginContext); // Use credentials from LoginContext
   const [invoice, setInvoice] = useState('');
   const [error, setError] = useState('');
   const wsRef = useRef(null);
-
-  // Replace these with actual public and private keys
-  const publicKey = process.env.REACT_APP_NPUB_KEY;
-  const privateKey = process.env.REACT_APP_PRIVATE_KEY;
 
   useEffect(() => {
     wsRef.current = new WebSocket('ws://localhost:7000');
@@ -32,7 +30,7 @@ const InvoiceSubmissionPage = ({ onInvoiceSubmit, orderDetails }) => {
   const createNostrEvent = async (invoice) => {
     try {
       const eventContent = {
-        pubkey: publicKey,
+        pubkey: credentials.npub, // Use logged-in user's public key
         created_at: Math.floor(Date.now() / 1000),
         kind: 1, // Custom kind for invoice submission
         tags: [],
@@ -49,7 +47,7 @@ const InvoiceSubmissionPage = ({ onInvoiceSubmit, orderDetails }) => {
       ]);
 
       const messageHash = await utils.sha256(new TextEncoder().encode(serializedEvent));
-      const signature = await schnorr.sign(messageHash, privateKey);
+      const signature = await schnorr.sign(messageHash, credentials.nsec); // Use logged-in user's private key
 
       return {
         ...eventContent,
